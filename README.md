@@ -34,7 +34,7 @@ A web-based Tic Tac Toe game built with Python and Flask.
 Access the live game at: http://3.106.125.189:5000
 
 ## Screenshots
-![Tic Tac Toe Game](screenshots/Screenshot.png)
+![Tic Tac Toe Game](screenshots/screenshot.png)
 
 ## License
 MIT
