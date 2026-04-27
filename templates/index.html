@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe vs AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+        }
+        
+        .subtitle {
+            color: #88a4cc;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .status {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .status.winner {
+            color: #00ff88;
+            font-weight: bold;
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        .status.tie {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 10px;
+            margin: 0 auto 30px;
+            width: fit-content;
+        }
+        
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cell:hover:not(.taken) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+        }
+        
+        .cell.taken {
+            cursor: not-allowed;
+        }
+        
+        .cell.x {
+            color: #00d4ff;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
+        }
+        
+        .cell.o {
+            color: #ff6b6b;
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.7);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .player-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .player {
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .player.active {
+            background: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .player.ai {
+            color: #ff6b6b;
+        }
+        
+        .player.you {
+            color: #00d4ff;
+        }
+        
+        .mode-selector {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .mode-btn {
+            padding: 10px 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #88a4cc;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+        
+        @media (max-width: 400px) {
+            .board {
+                grid-template-columns: repeat(3, 80px);
+            }
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <p class="subtitle">Play against an unbeatable AI</p>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" id="modeAI" data-mode="ai">vs AI</button>
+            <button class="mode-btn" id="modeHuman" data-mode="human">vs Player</button>
+        </div>
+        
+        <div class="player-info">
+            <div class="player you" id="playerYou">You (X)</div>
+            <div class="player ai" id="playerAI">AI (O)</div>
+        </div>
+        
+        <div class="status" id="status">Click New Game to start!</div>
+        
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        
+        <button class="btn" id="newGameBtn">New Game</button>
+    </div>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const statusEl = document.getElementById('status');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const playerYou = document.getElementById('playerYou');
+        const playerAI = document.getElementById('playerAI');
+        const modeAI = document.getElementById('modeAI');
+        const modeHuman = document.getElementById('modeHuman');
+        
+        let gameOver = false;
+        let currentPlayer = 'X';
+        let gameMode = 'ai';
+        
+        // Mode selector
+        modeAI.addEventListener('click', () => {
+            gameMode = 'ai';
+            modeAI.classList.add('active');
+            modeHuman.classList.remove('active');
+            playerYou.textContent = 'You (X)';
+            playerAI.textContent = 'AI (O)';
+            document.querySelector('.subtitle').textContent = 'Play against an unbeatable AI';
+            newGame();
+        });
+        
+        modeHuman.addEventListener('click', () => {
+            gameMode = 'human';
+            modeHuman.classList.add('active');
+            modeAI.classList.remove('active');
+            playerYou.textContent = 'Player X';
+            playerAI.textContent = 'Player O';
+            document.querySelector('.subtitle').textContent = 'Play with a friend!';
+            newGame();
+        });
+        
+        function updateBoard(board) {
+            cells.forEach((cell, index) => {
+                cell.textContent = board[index];
+                cell.className = 'cell';
+                if (board[index] === 'X') {
+                    cell.classList.add('x', 'taken');
+                } else if (board[index] === 'O') {
+                    cell.classList.add('o', 'taken');
+                } else {
+                    cell.classList.remove('taken');
+                }
+            });
+        }
+        
+        function updateStatus(message, isWinner = false, isTie = false) {
+            statusEl.textContent = message;
+            statusEl.className = 'status';
+            if (isWinner) {
+                statusEl.classList.add('winner');
+            } else if (isTie) {
+                statusEl.classList.add('tie');
+            }
+        }
+        
+        function updateActivePlayer(player) {
+            playerYou.classList.toggle('active', player === 'X');
+            playerAI.classList.toggle('active', player === 'O');
+        }
+        
+        async function newGame() {
+            try {
+                const response = await fetch('/new_game', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: gameMode })
+                });
+                const data = await response.json();
+                
+                updateBoard(data.board);
+                updateStatus(data.message);
+                currentPlayer = data.current_player;
+                gameOver = data.game_over;
+                updateActivePlayer(currentPlayer);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function makeMove(position) {
+            if (gameOver) return;
+            
+            try {
+                const response = await fetch('/make_move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ position })
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+                
+                updateBoard(data.board);
+                
+                if (data.game_over) {
+                    gameOver = true;
+                    const isWinner = data.winner && data.winner !== 'tie';
+                    const isTie = data.winner === 'tie';
+                    updateStatus(data.message, isWinner, isTie);
+                    updateActivePlayer('');
+                } else {
+                    updateStatus(data.message);
+                    currentPlayer = data.current_player;
+                    updateActivePlayer(currentPlayer);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        cells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                const position = parseInt(cell.dataset.index);
+                makeMove(position);
+            });
+        });
+        
+        newGameBtn.addEventListener('click', newGame);
+        
+        // Initialize
+        newGame();
+    </script>
+</body>
+</html>
